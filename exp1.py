@@ -105,7 +105,7 @@ def build_datasets(csv_path, image_base):
     return datasets
 
 
-# Usage
+
 if __name__ == "__main__":
     datasets = build_datasets(
         csv_path='/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv',
