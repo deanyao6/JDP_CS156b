@@ -14,7 +14,7 @@ git pull origin cs156b_branch
 
 source ~/miniconda3/bin/activate base
 
-python train.py \
+python resnet_frontal_training.py \
     --train_csv train_clean.csv \
     --epochs 5 \
     --batch_size 32 \
