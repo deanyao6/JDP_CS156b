@@ -20,5 +20,5 @@ python resnet_frontal_training.py \
     --epochs 5 \
     --batch_size 32 \
     --lr 1e-4 \
-    --num_workers 4 \
+    --num_workers 0 \
     --output_dir checkpoints
