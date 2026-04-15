@@ -132,6 +132,7 @@ def evaluate(model, loader, criterion, device):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--train_csv", type=str, default="train_clean.csv")
+    p.add_argument("--train_csv", type=str, default="train_clean.csv")
     p.add_argument("--valid_csv", type=str, default="val_clean.csv")
     p.add_argument("--data_dir", type=str, default=DATA_DIR)
     p.add_argument("--epochs", type=int, default=5)
@@ -146,10 +147,22 @@ def main():
     print(f"Device: {device}")
 
     # datasets
+
+    
+    # train_dataset = CheXpertDataset(
+    #     args.train_csv, args.data_dir,
+    #     transform=get_transforms("train"),
+    # )
+
     train_dataset = CheXpertDataset(
-        args.train_csv, args.data_dir,
-        transform=get_transforms("train"),
+    args.train_csv, args.data_dir,
+    transform=get_transforms("train"),
     )
+
+    if args.subset:
+    train_dataset.df = train_dataset.df.head(args.subset)
+    train_dataset.labels = train_dataset.labels[:args.subset]
+
     val_dataset = CheXpertDataset(
         args.valid_csv, args.data_dir,
         transform=get_transforms("val"),

@@ -17,7 +17,8 @@ source ~/miniconda3/bin/activate cs156b
 
 python resnet_frontal_training.py \
     --train_csv train_clean.csv \
-    --epochs 5 \
+    --subset 5000 \
+    --epochs 2 \
     --batch_size 32 \
     --lr 1e-4 \
     --num_workers 0 \
