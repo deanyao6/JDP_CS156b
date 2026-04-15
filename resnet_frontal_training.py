@@ -121,6 +121,7 @@ def evaluate(model, loader, criterion, device):
     for i, col in enumerate(LABEL_COLS):
         valid = ~np.isnan(all_labels[:, i])
         if valid.sum() > 0 and len(np.unique(all_labels[valid, i])) > 1:
+            binary_labels = (all_labels[valid, i] == 1).astype(float)
             aucs[col] = roc_auc_score(all_labels[valid, i], all_preds[valid, i])
         else:
             aucs[col] = float("nan")
