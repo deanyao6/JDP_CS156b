@@ -10,8 +10,8 @@
 #SBATCH --output=train_%j.out
 #SBATCH --error=train_%j.err
 
-cd ~/JDP_CS156b
-git pull origin cs156b_branch
+cd /resnick/groups/CS156b/from_central/2026/JDP/jenna
+git pull origin main
 
 source ~/miniconda3/bin/activate cs156b
 
