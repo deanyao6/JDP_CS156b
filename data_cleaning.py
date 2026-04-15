@@ -1,8 +1,8 @@
 import pandas as pd
+import numpy as np
  
 DATA_DIR = "/resnick/groups/CS156b/from_central/data"
 TRAIN_CSV = f"{DATA_DIR}/student_labels/train2023.csv"
-OUTPUT_CSV = "train_clean.csv"
  
 LABEL_COLS = [
     "No Finding", "Enlarged Cardiomediastinum", "Cardiomegaly",
@@ -49,7 +49,19 @@ summary = pd.DataFrame({
     "missing":  df[LABEL_COLS].isna().sum(),
 })
 print(summary.sort_values("positive", ascending=False))
- 
-# save cleaned csv
-df.to_csv(OUTPUT_CSV, index=False)
-print(f"\nSaved cleaned CSV to {OUTPUT_CSV}")
+
+patients = df["patient_id"].unique()
+np.random.seed(42)
+np.random.shuffle(patients)
+split = int(0.9 * len(patients))
+
+train_patients = set(patients[:split])
+val_patients = set(patients[split:])
+
+train_df = df[df["patient_id"].isin(train_patients)]
+val_df = df[df["patient_id"].isin(val_patients)]
+
+train_df.to_csv("train_clean.csv", index=False)
+val_df.to_csv("val_clean.csv", index=False)
+print(f"\nTrain: {len(train_df)} images ({len(train_patients)} patients)")
+print(f"Val:   {len(val_df)} images ({len(val_patients)} patients)")
