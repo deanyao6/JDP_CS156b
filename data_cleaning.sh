@@ -5,5 +5,5 @@
 #SBATCH --time=00:30:00
 #SBATCH -J "chexpert_prep"
 
-module load python/3.11.6-gcc-13.2.0-fh6i4o3
+source ~/miniconda3/bin/activate cs156b
 python data_cleaning.py
