@@ -55,7 +55,8 @@ class CheXpertDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        img_path = os.path.join(self.image_base, row['Path'])
+        rel_path = row['Path'].replace('CheXpert-v1.0/', '')
+        img_path = os.path.join(self.image_base, rel_path)
         img = Image.open(img_path).convert('L')
         if self.transform:
             img = self.transform(img)
@@ -158,3 +159,4 @@ if __name__ == "__main__":
         save_path = f"/groups/CS156b/from_central/2026/JDP/dean_folder/models/{view}_basiccnn.pt"
         torch.save(model.state_dict(), save_path)
         print(f"  Saved to {save_path}")
+
