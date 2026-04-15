@@ -3,9 +3,11 @@ import pandas as pd
 import numpy as np
 from PIL import Image, ImageOps
 import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
+import torch.nn as nn
 
+# pathologies list
 PATHOLOGIES = [
     'No Finding',
     'Enlarged Cardiomediastinum',
@@ -19,10 +21,8 @@ PATHOLOGIES = [
 ]
 
 def pad_to_square(img):
-    """Pad the shorter side with black pixels to make the image square."""
     w, h = img.size
     max_side = max(w, h)
-    # (left, top, right, bottom)
     padding = (
         (max_side - w) // 2,
         (max_side - h) // 2,
@@ -36,83 +36,125 @@ TRANSFORM = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],  # ImageNet stats
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225]),
 ])
 
-
 class CheXpertDataset(Dataset):
-    """
-    A single dataset for one view type and one pathology.
-    
-    Args:
-        df:         DataFrame (already filtered to frontal or lateral)
-        pathology:  One of the 9 strings in PATHOLOGIES
-        image_base: Root directory prepended to df['Path']
-        transform:  Torchvision transform pipeline
-    """
-    def init(self, df, pathology, image_base, transform=TRANSFORM):
-        assert pathology in PATHOLOGIES, f"Unknown pathology: {pathology}"
+    def __init__(self, df, image_base, transform=TRANSFORM):
         self.image_base = image_base
-        self.pathology = pathology
         self.transform = transform
+        # fill NaN labels with 0
+        self.df = df.copy()
+        self.df[PATHOLOGIES] = self.df[PATHOLOGIES].fillna(0)
+        self.df = self.df.reset_index(drop=True)
+        print(f"  Dataset size: {len(self.df)} rows")
 
-        # Drop rows where this pathology label is NaN
-        self.df = df[df[pathology].notna()].reset_index(drop=True)
-        print(f"  [{pathology}] {len(self.df)} labeled rows")
-
-    def len(self):
+    def __len__(self):
         return len(self.df)
 
-    def getitem(self, idx):
+    def __getitem__(self, idx):
         row = self.df.iloc[idx]
         img_path = os.path.join(self.image_base, row['Path'])
-        
         img = Image.open(img_path).convert('L')
         if self.transform:
             img = self.transform(img)
-
-        # Label: 1.0 = positive, 0.0 = negative, -1.0 = uncertain (u-ones/u-zeros policy can replace later)
-        label = torch.tensor(row[self.pathology], dtype=torch.float32)
-        return img, label
+        labels = torch.tensor(row[PATHOLOGIES].values.astype(np.float32))
+        return img, labels
 
 
 def build_datasets(csv_path, image_base):
-    """
-    Returns a nested dict:
-        datasets['frontal']['Cardiomegaly'] -> CheXpertDataset
-        datasets['lateral']['Pleural Effusion'] -> CheXpertDataset
-        ...
-    """
     df = pd.read_csv(csv_path)
-
-    # Split on Frontal/Lateral column
     frontal_df = df[df['Frontal/Lateral'] == 'Frontal'].reset_index(drop=True)
     lateral_df = df[df['Frontal/Lateral'] == 'Lateral'].reset_index(drop=True)
-    print(f"Frontal: {len(frontal_df)} rows | Lateral: {len(lateral_df)} rows\n")
+    print(f"Frontal: {len(frontal_df)} rows | Lateral: {len(lateral_df)} rows")
+    print("--- FRONTAL ---")
+    frontal_ds = CheXpertDataset(frontal_df, image_base)
+    print("--- LATERAL ---")
+    lateral_ds = CheXpertDataset(lateral_df, image_base)
+    return {'frontal': frontal_ds, 'lateral': lateral_ds}
 
-    datasets = {'frontal': {}, 'lateral': {}}
 
-    for view, view_df in [('frontal', frontal_df), ('lateral', lateral_df)]:
-        print(f"--- {view.upper()} ---")
-        for pathology in PATHOLOGIES:
-            datasets[view][pathology] = CheXpertDataset(
-                df=view_df,
-                pathology=pathology,
-                image_base=image_base,
-            )
+class BasicCNN(nn.Module):
+    def __init__(self, num_classes=9):
+        super().__init__()
+        self.block1 = nn.Sequential(
+            nn.Conv2d(3, 32, kernel_size=3, padding=1),
+            nn.BatchNorm2d(32),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.block2 = nn.Sequential(
+            nn.Conv2d(32, 64, kernel_size=3, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(),
+            nn.MaxPool2d(2)
+        )
+        self.classifier = nn.Sequential(
+            nn.AdaptiveAvgPool2d(1),
+            nn.Flatten(),
+            nn.Linear(64, num_classes)  # 9 outputs, one per pathology
+        )
 
-    return datasets
+    def forward(self, x):
+        x = self.block1(x)
+        x = self.block2(x)
+        return self.classifier(x)
 
+
+def make_loss(dataset):
+    # compute pos_weight for each of the 9 pathologies
+    labels = dataset.df[PATHOLOGIES].values
+    n_pos = (labels == 1.0).sum(axis=0)
+    n_neg = (labels == 0.0).sum(axis=0)
+    # avoid division by zero
+    n_pos = np.where(n_pos == 0, 1, n_pos)
+    pos_weight = torch.tensor(n_neg / n_pos, dtype=torch.float32)
+    print(f"  pos_weights: {pos_weight.numpy().round(2)}")
+    return nn.BCEWithLogitsLoss(pos_weight=pos_weight)
+
+
+def train_one_epoch(model, loader, criterion, optimizer, device):
+    model.train()
+    total_loss = 0
+    for images, labels in loader:
+        images = images.to(device)
+        labels = labels.to(device)
+        optimizer.zero_grad()
+        logits = model(images)
+        loss = criterion(logits, labels)
+        loss.backward()
+        optimizer.step()
+        total_loss += loss.item()
+    return total_loss / len(loader)
 
 
 if __name__ == "__main__":
-    datasets = build_datasets(
-        csv_path='/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv',
-        image_base='/resnick/groups/CS156b/from_central/data/',
-    )
+    CSV_PATH   = '/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv'
+    IMAGE_BASE = '/resnick/groups/CS156b/from_central/data/'
+    EPOCHS     = 5
+    BATCH_SIZE = 64
 
-    # Access any sub-dataset
-    ds = datasets['frontal']['Cardiomegaly']
-    img, label = ds[0]
-    print(f"\nSample — image shape: {img.shape}, label: {label.item()}")
+    device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+    print(f"Using device: {device}")
+
+    datasets = build_datasets(CSV_PATH, IMAGE_BASE)
+
+    os.makedirs("models", exist_ok=True)
+
+    for view in ['frontal', 'lateral']:
+        print(f"\n=== Training: {view} ===")
+        ds = datasets[view]
+        loader = DataLoader(ds, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
+
+        model = BasicCNN(num_classes=len(PATHOLOGIES)).to(device)
+        criterion = make_loss(ds).to(device)
+        optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+        for epoch in range(EPOCHS):
+            loss = train_one_epoch(model, loader, criterion, optimizer, device)
+            print(f"  Epoch {epoch+1}/{EPOCHS} | Loss: {loss:.4f}")
+
+        save_path = f"/groups/CS156b/from_central/2026/JDP/dean_folder/models/{view}_basiccnn.pt"
+        torch.save(model.state_dict(), save_path)
+        print(f"  Saved to {save_path}")
