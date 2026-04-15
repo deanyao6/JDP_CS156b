@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:1
+#SBATCH --gres=gpu:v100:1
 #SBATCH --mem=32G
 #SBATCH --time=06:00:00
 #SBATCH -J "frontal_resnet"
@@ -13,7 +13,7 @@
 cd ~/JDP_CS156b
 git pull origin cs156b_branch
 
-source ~/miniconda3/bin/activate base
+source ~/miniconda3/bin/activate cs156b
 
 python resnet_frontal_training.py \
     --train_csv train_clean.csv \
