@@ -45,18 +45,4 @@ print(f"\nUnique (W, H) combos in sample: {len(unique_sizes)}")
 for s in sorted(unique_sizes):
     print(f"  {s}")
 
-
-fig, axes = plt.subplots(2, 3, figsize=(10, 6))
-
-for ax, rel_path in zip(axes.flatten(), sample_df[:6]):
-    full_path = os.path.join(image_base, rel_path)
-    if os.path.exists(full_path):
-        img = Image.open(full_path)
-        ax.imshow(img)
-        ax.set_title(os.path.basename(rel_path), fontsize=8)
-        ax.axis('off')
-    else:
-        ax.axis('off')
-
-plt.tight_layout()
-plt.show()
+print(df.head(30))
