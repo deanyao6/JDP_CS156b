@@ -8,3 +8,8 @@ Epoch 4/5 | Loss: 0.1707
 Epoch 5/5 | Loss: 0.1148
 Frontal Model saved.
 Epoch 1/5 | Loss: 0.3136
+Epoch 2/5 | Loss: 0.2694
+Epoch 3/5 | Loss: 0.2500
+Epoch 4/5 | Loss: 0.2227
+Epoch 5/5 | Loss: 0.1830
+Lateral Model saved.
