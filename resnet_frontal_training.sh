@@ -5,19 +5,20 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:h100:1
 #SBATCH --mem=32G
-#SBATCH --time=06:00:00
+#SBATCH --time=00:30:00
 #SBATCH -J "frontal_resnet"
 #SBATCH --output=train_%j.out
 #SBATCH --error=train_%j.err
 
-cd ~/JDP_CS156b
-git pull origin cs156b_branch
+cd /resnick/groups/CS156b/from_central/2026/JDP/jenna
+git pull origin main
 
 source ~/miniconda3/bin/activate cs156b
 
 python resnet_frontal_training.py \
     --train_csv train_clean.csv \
-    --epochs 5 \
+    --subset 5000 \
+    --epochs 2 \
     --batch_size 32 \
     --lr 1e-4 \
     --num_workers 0 \

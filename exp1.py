@@ -1,28 +1,16 @@
 import os
 import pandas as pd
-import numpy as np
 from PIL import Image, ImageOps
-import torch
-from torch.utils.data import Dataset
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
 
-PATHOLOGIES = [
-    'No Finding',
-    'Enlarged Cardiomediastinum',
-    'Cardiomegaly',
-    'Lung Opacity',
-    'Pneumonia',
-    'Pleural Effusion',
-    'Pleural Other',
-    'Fracture',
-    'Support Devices',
-]
+train_path = '/resnick/groups/CS156b/from_central/data/train'
+
+# ── Transform ────────────────────────────────────────────────────────────────
 
 def pad_to_square(img):
-    """Pad the shorter side with black pixels to make the image square."""
     w, h = img.size
     max_side = max(w, h)
-    # (left, top, right, bottom)
     padding = (
         (max_side - w) // 2,
         (max_side - h) // 2,
@@ -36,83 +24,75 @@ TRANSFORM = transforms.Compose([
     transforms.Resize((224, 224)),
     transforms.Grayscale(num_output_channels=3),
     transforms.ToTensor(),
-    transforms.Normalize(mean=[0.485, 0.456, 0.406],  # ImageNet stats
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
                          std=[0.229, 0.224, 0.225]),
 ])
 
+# ── Dataset ──────────────────────────────────────────────────────────────────
+
+LABELS = [
+    'No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
+    'Lung Opacity', 'Lung Lesion', 'Edema', 'Consolidation',
+    'Pneumonia', 'Atelectasis', 'Pneumothorax', 'Pleural Effusion',
+    'Pleural Other', 'Fracture', 'Support Devices',
+]
 
 class CheXpertDataset(Dataset):
-    """
-    A single dataset for one view type and one pathology.
-    
-    Args:
-        df:         DataFrame (already filtered to frontal or lateral)
-        pathology:  One of the 9 strings in PATHOLOGIES
-        image_base: Root directory prepended to df['Path']
-        transform:  Torchvision transform pipeline
-    """
-    def init(self, df, pathology, image_base, transform=TRANSFORM):
-        assert pathology in PATHOLOGIES, f"Unknown pathology: {pathology}"
-        self.image_base = image_base
-        self.pathology = pathology
+    def __init__(self, csv_path, base_dir, view='frontal', transform=None):
+        """
+        Args:
+            csv_path  : path to train.csv / valid.csv
+            base_dir  : root that the CSV paths are relative to
+            view      : 'frontal' | 'lateral' | 'all'
+            transform : torchvision transform
+        """
+        df = pd.read_csv(csv_path)
+
+        if view == 'frontal':
+            df = df[df['Frontal/Lateral'] == 'Frontal']
+        elif view == 'lateral':
+            df = df[df['Frontal/Lateral'] == 'Lateral']
+        # 'all' keeps everything
+
+        df = df.reset_index(drop=True)
+
+        self.df        = df
+        self.base_dir  = base_dir
         self.transform = transform
 
-        # Drop rows where this pathology label is NaN
-        self.df = df[df[pathology].notna()].reset_index(drop=True)
-        print(f"  [{pathology}] {len(self.df)} labeled rows")
-
-    def len(self):
+    def __len__(self):
         return len(self.df)
 
-    def getitem(self, idx):
+    def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        img_path = os.path.join(self.image_base, row['Path'])
-        
-        img = Image.open(img_path).convert('L')
+
+        # CSV paths look like "CheXpert-v1.0/train/patient00001/..."
+        img_path = os.path.join(self.base_dir, row['Path'])
+        img = Image.open(img_path).convert('L')   # load as grayscale PIL
+
         if self.transform:
             img = self.transform(img)
 
-        # Label: 1.0 = positive, 0.0 = negative, -1.0 = uncertain (u-ones/u-zeros policy can replace later)
-        label = torch.tensor(row[self.pathology], dtype=torch.float32)
-        return img, label
+        # Fill NaN labels: -1 (uncertain) → 0, NaN (unmentioned) → 0
+        labels = (
+            self.df[LABELS]
+            .iloc[idx]
+            .fillna(0)
+            .replace(-1, 0)
+            .values.astype('float32')
+        )
 
+        return img, labels
 
-def build_datasets(csv_path, image_base):
-    """
-    Returns a nested dict:
-        datasets['frontal']['Cardiomegaly'] -> CheXpertDataset
-        datasets['lateral']['Pleural Effusion'] -> CheXpertDataset
-        ...
-    """
-    df = pd.read_csv(csv_path)
+# ── Instantiate ───────────────────────────────────────────────────────────────
 
-    # Split on Frontal/Lateral column
-    frontal_df = df[df['Frontal/Lateral'] == 'Frontal'].reset_index(drop=True)
-    lateral_df = df[df['Frontal/Lateral'] == 'Lateral'].reset_index(drop=True)
-    print(f"Frontal: {len(frontal_df)} rows | Lateral: {len(lateral_df)} rows\n")
+csv_path = os.path.join(train_path, 'train.csv')
 
-    datasets = {'frontal': {}, 'lateral': {}}
+frontal_dataset = CheXpertDataset(csv_path, train_path, view='frontal', transform=TRANSFORM)
+lateral_dataset = CheXpertDataset(csv_path, train_path, view='lateral', transform=TRANSFORM)
 
-    for view, view_df in [('frontal', frontal_df), ('lateral', lateral_df)]:
-        print(f"--- {view.upper()} ---")
-        for pathology in PATHOLOGIES:
-            datasets[view][pathology] = CheXpertDataset(
-                df=view_df,
-                pathology=pathology,
-                image_base=image_base,
-            )
+frontal_loader  = DataLoader(frontal_dataset, batch_size=32, shuffle=True,  num_workers=4)
+lateral_loader  = DataLoader(lateral_dataset, batch_size=32, shuffle=True,  num_workers=4)
 
-    return datasets
-
-
-
-if __name__ == "__main__":
-    datasets = build_datasets(
-        csv_path='/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv',
-        image_base='/resnick/groups/CS156b/from_central/data/',
-    )
-
-    # Access any sub-dataset
-    ds = datasets['frontal']['Cardiomegaly']
-    img, label = ds[0]
-    print(f"\nSample — image shape: {img.shape}, label: {label.item()}")
+print(f"Frontal samples : {len(frontal_dataset)}")
+print(f"Lateral samples : {len(lateral_dataset)}")
