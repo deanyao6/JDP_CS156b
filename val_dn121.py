@@ -33,8 +33,8 @@ LABELS = [
 frontal_full = CheXpertDataset(os.path.join(save_dir, 'frontal_train.csv'), train_path, view='all', transform=TRANSFORM)
 lateral_full = CheXpertDataset(os.path.join(save_dir, 'lateral_train.csv'), train_path, view='all', transform=TRANSFORM)
 
-frontal_val = Subset(frontal_full, range(len(frontal_full) - 5000, len(frontal_full)))
-lateral_val = Subset(lateral_full, range(len(lateral_full) - 5000, len(lateral_full)))
+frontal_val = Subset(frontal_full, range(len(frontal_full) - 100, len(frontal_full)))
+lateral_val = Subset(lateral_full, range(len(lateral_full) - 100, len(lateral_full)))
 
 frontal_loader = DataLoader(frontal_val, batch_size=64, shuffle=False, num_workers=4, pin_memory=True)
 lateral_loader = DataLoader(lateral_val, batch_size=64, shuffle=False, num_workers=4, pin_memory=True)

@@ -86,12 +86,12 @@ class CheXpertDataset(Dataset):
 csv_path = os.path.join(train_path, 'student_labels', 'train2023.csv')
 
 # save filtered CSVs (run once)
-# save_dir = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
+save_dir = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
 
-# df = pd.read_csv(csv_path)
-# df[df['Frontal/Lateral'] == 'Frontal'].to_csv(os.path.join(save_dir, 'frontal_train.csv'), index=False)
-# df[df['Frontal/Lateral'] == 'Lateral'].to_csv(os.path.join(save_dir, 'lateral_train.csv'), index=False)
-# print("Saved frontal_train.csv and lateral_train.csv")
+df = pd.read_csv(csv_path)
+df[df['Frontal/Lateral'] == 'Frontal'].to_csv(os.path.join(save_dir, 'frontal_train.csv'), index=False)
+df[df['Frontal/Lateral'] == 'Lateral'].to_csv(os.path.join(save_dir, 'lateral_train.csv'), index=False)
+print("Saved frontal_train.csv and lateral_train.csv")
 
 frontal_dataset = CheXpertDataset(csv_path, train_path, view='frontal', transform=TRANSFORM)
 lateral_dataset = CheXpertDataset(csv_path, train_path, view='lateral', transform=TRANSFORM)
