@@ -6,7 +6,6 @@ import torch
 from torch.utils.data import Dataset
 from torchvision import transforms
 from collections import Counter
-import matplotlib.pyplot as plt
 
 
 train_csv = "/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv"
