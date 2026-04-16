@@ -1,0 +1,7 @@
+Updating 7d4517d..ea25b1f
+Fast-forward
+ model1.py                  | 131 ++++++++++++++++++++++++++++++---------------
+ resnet_frontal_training.py |   8 +--
+ 2 files changed, 92 insertions(+), 47 deletions(-)
+Frontal samples : 152298
+Lateral samples : 25860

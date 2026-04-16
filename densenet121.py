@@ -33,8 +33,8 @@ model = model.to(device)
 criterion = nn.BCEWithLogitsLoss()
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
 
-# small_frontal = Subset(frontal_dataset, range(1000))
-frontal_loader = DataLoader(frontal_dataset, batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
+small_frontal = Subset(frontal_dataset, range(5000))
+frontal_loader = DataLoader(small_frontal, batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
 
 NUM_EPOCHS = 5
 for epoch in range(NUM_EPOCHS):
@@ -52,7 +52,8 @@ for epoch in range(NUM_EPOCHS):
 
     print(f"Epoch {epoch+1}/{NUM_EPOCHS} | Loss: {total_loss / len(frontal_loader):.4f}")
 
-torch.save(model.state_dict(), os.path.join(save_dir, 'densenet121_frontal.pth'))
+# torch.save(model.state_dict(), os.path.join(save_dir, 'densenet121_frontal.pth'))
+torch.save(model.state_dict(), os.path.join(save_dir, 'densenet121_frontal_small.pth'))
 print("Frontal Model saved.")
 
 # lateral model
@@ -61,6 +62,8 @@ model = models.densenet121(weights=models.DenseNet121_Weights.DEFAULT)
 model.classifier = nn.Linear(model.classifier.in_features, NUM_LABELS)
 model = model.to(device)
 optimizer = optim.Adam(model.parameters(), lr=1e-4)
+
+small_lateral = Subset(lateral_dataset, range(5000))
 lateral_loader = DataLoader(lateral_dataset, batch_size=64, shuffle=True, num_workers=4, pin_memory=True)
 
 NUM_EPOCHS = 5
@@ -79,5 +82,6 @@ for epoch in range(NUM_EPOCHS):
 
     print(f"Epoch {epoch+1}/{NUM_EPOCHS} | Loss: {total_loss / len(lateral_loader):.4f}")
 
-torch.save(model.state_dict(), os.path.join(save_dir, 'densenet121_lateral.pth'))
+# torch.save(model.state_dict(), os.path.join(save_dir, 'densenet121_lateral.pth'))
+torch.save(model.state_dict(), os.path.join(save_dir, 'densenet121_lateral_small.pth'))
 print("Lateral Model saved.")
