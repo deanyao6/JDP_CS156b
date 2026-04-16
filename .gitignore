@@ -1,3 +1,5 @@
 .ipynb_checkpoints/
 *.out
 *.err
+frontal_train.csv
+lateral_train.csv
