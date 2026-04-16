@@ -7,3 +7,5 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 print("Hi")
+for i in range(5):
+    print(i)
