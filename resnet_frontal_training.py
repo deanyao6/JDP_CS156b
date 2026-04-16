@@ -132,6 +132,7 @@ def evaluate(model, loader, criterion, device):
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--train_csv", type=str, default="train_clean.csv")
+    p.add_argument("--subset", type=int, default=None, help="use only N training samples")
     p.add_argument("--valid_csv", type=str, default="val_clean.csv")
     p.add_argument("--data_dir", type=str, default=DATA_DIR)
     p.add_argument("--epochs", type=int, default=5)
