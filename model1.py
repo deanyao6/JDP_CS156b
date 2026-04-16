@@ -1,47 +1,92 @@
 import os
 import pandas as pd
-import numpy as np
-from PIL import Image, ImageOps
 import torch
-from torch.utils.data import Dataset
+from PIL import Image, ImageOps
+from torch.utils.data import Dataset, DataLoader
 from torchvision import transforms
-from collections import Counter
 
+# ── Paths ─────────────────────────────────────────────────────────────
 
-train_csv = "/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv"
-image_base = "/resnick/groups/CS156b/from_central/data/"  # adjust if needed
+csv_path = "/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv"
+base_dir = "/resnick/groups/CS156b/from_central/data"   # IMPORTANT
 
-df = pd.read_csv(train_csv)
+# ── Transform ─────────────────────────────────────────────────────────
 
-# Sample across the dataset, not just the first 20
-sample_df = df['Path'].dropna().sample(30, random_state=42).tolist()
+def pad_to_square(img):
+    w, h = img.size
+    max_side = max(w, h)
+    padding = (
+        (max_side - w) // 2,
+        (max_side - h) // 2,
+        (max_side - w + 1) // 2,
+        (max_side - h + 1) // 2,
+    )
+    return ImageOps.expand(img, padding, fill=0)
 
-widths, heights, channels, modes = [], [], [], []
+TRANSFORM = transforms.Compose([
+    transforms.Lambda(pad_to_square),
+    transforms.Resize((224, 224)),
+    transforms.Grayscale(num_output_channels=3),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
 
-for rel_path in sample_df:
-    full_path = os.path.join(image_base, rel_path)
-    if not os.path.exists(full_path):
-        print(f"Missing: {full_path}")
-        continue
-    with Image.open(full_path) as img:
-        w, h = img.size
-        mode = img.mode
-        c = len(img.getbands())
-        widths.append(w)
-        heights.append(h)
-        channels.append(c)
-        modes.append(mode)
-        print(f"{os.path.basename(rel_path)}: {w}x{h}, mode={mode}, channels={c}")
+# ── Load + Clean Data ─────────────────────────────────────────────────
 
-print("\n--- Aggregate Stats (sample of 30) ---")
-print(f"Width  — min: {min(widths)}, max: {max(widths)}, mean: {np.mean(widths):.0f}, median: {int(np.median(widths))}")
-print(f"Height — min: {min(heights)}, max: {max(heights)}, mean: {np.mean(heights):.0f}, median: {int(np.median(heights))}")
-print(f"Channel counts: {Counter(channels)}")
-print(f"Image modes:    {Counter(modes)}")
+df = pd.read_csv(csv_path)
 
-unique_sizes = set(zip(widths, heights))
-print(f"\nUnique (W, H) combos in sample: {len(unique_sizes)}")
-for s in sorted(unique_sizes):
-    print(f"  {s}")
+# keep only lateral images
+df = df[df['Frontal/Lateral'] == 'Lateral']
 
-print(df.head(30))
+# drop rows where Pneumonia is NaN
+df = df.dropna(subset=['Pneumonia'])
+
+# map labels: -1 → 0, keep 1 as is
+df['Pneumonia'] = df['Pneumonia'].replace(-1, 0).astype('float32')
+
+df = df.reset_index(drop=True)
+
+# ── Dataset ───────────────────────────────────────────────────────────
+
+class PneumoniaDataset(Dataset):
+    def __init__(self, df, base_dir, transform=None):
+        self.df = df
+        self.base_dir = base_dir
+        self.transform = transform
+
+    def __len__(self):
+        return len(self.df)
+
+    def __getitem__(self, idx):
+        row = self.df.iloc[idx]
+
+        img_path = os.path.join(self.base_dir, row['Path'])
+        img = Image.open(img_path).convert('L')
+
+        if self.transform:
+            img = self.transform(img)
+
+        label = torch.tensor(row['Pneumonia'], dtype=torch.float32)
+
+        return img, label
+
+# ── Create Dataset + Loader ───────────────────────────────────────────
+
+dataset = PneumoniaDataset(df, base_dir, transform=TRANSFORM)
+
+loader = DataLoader(
+    dataset,
+    batch_size=32,
+    shuffle=True,
+    num_workers=4
+)
+
+# ── Sanity Checks ─────────────────────────────────────────────────────
+
+print("Dataset size:", len(dataset))
+print("Label distribution:\n", df['Pneumonia'].value_counts())
+
+img, label = dataset[0]
+print("Image shape:", img.shape)   # should be [3, 224, 224]
+print("Label:", label)
