@@ -1,0 +1,29 @@
+Traceback (most recent call last):
+  File "/resnick/groups/CS156b/from_central/2026/JDP/dean_folder/val_dn121.py", line 80, in <module>
+    evaluate(frontal_model, frontal_loader, "Frontal")
+  File "/resnick/groups/CS156b/from_central/2026/JDP/dean_folder/val_dn121.py", line 50, in evaluate
+    for imgs, labels in loader:
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 701, in __next__
+    data = self._next_data()
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1445, in _next_data
+    return self._process_data(data)
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/utils/data/dataloader.py", line 1491, in _process_data
+    data.reraise()
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/_utils.py", line 715, in reraise
+    raise exception
+FileNotFoundError: Caught FileNotFoundError in DataLoader worker process 2.
+Original Traceback (most recent call last):
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/utils/data/_utils/worker.py", line 351, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/utils/data/_utils/fetch.py", line 50, in fetch
+    data = self.dataset.__getitems__(possibly_batched_index)
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/utils/data/dataset.py", line 420, in __getitems__
+    return [self.dataset[self.indices[idx]] for idx in indices]
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/torch/utils/data/dataset.py", line 420, in <listcomp>
+    return [self.dataset[self.indices[idx]] for idx in indices]
+  File "/resnick/groups/CS156b/from_central/2026/JDP/dean_folder/preprocess_DY.py", line 68, in __getitem__
+    img = Image.open(img_path).convert('L')
+  File "/resnick/groups/CS156b/from_central/2026/JDP/JDP-env/lib/python3.10/site-packages/PIL/Image.py", line 3512, in open
+    fp = builtins.open(filename, "rb")
+FileNotFoundError: [Errno 2] No such file or directory: '/resnick/groups/CS156b/from_central/data/CheXpert-v1.0/train/patient64540/study1/view1_frontal.jpg'
+

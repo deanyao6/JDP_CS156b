@@ -64,9 +64,7 @@ class CheXpertDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        # strip the leading "CheXpert-v1.0/" prefix from the CSV path
-        relative_path = row['Path'].replace('CheXpert-v1.0/', '')
-        img_path = os.path.join(self.base_dir, relative_path)
+        img_path = os.path.join(self.base_dir, row['Path'])
         img = Image.open(img_path).convert('L')
 
         if self.transform:
