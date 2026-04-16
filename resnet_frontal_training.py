@@ -155,13 +155,13 @@ def main():
     # )
 
     train_dataset = CheXpertDataset(
-    args.train_csv, args.data_dir,
-    transform=get_transforms("train"),
+        args.train_csv, args.data_dir,
+        transform=get_transforms("train"),
     )
 
     if args.subset:
-    train_dataset.df = train_dataset.df.head(args.subset)
-    train_dataset.labels = train_dataset.labels[:args.subset]
+        train_dataset.df = train_dataset.df.head(args.subset)
+        train_dataset.labels = train_dataset.labels[:args.subset]
 
     val_dataset = CheXpertDataset(
         args.valid_csv, args.data_dir,
