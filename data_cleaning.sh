@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --mem=8G
 #SBATCH --time=00:30:00
-#SBATCH -J "chexpert_prep"
+#SBATCH -J "data_cleaning"
 
 cd /resnick/groups/CS156b/from_central/2026/JDP/jenna
 git pull origin main
