@@ -5,7 +5,7 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:h100:1
 #SBATCH --mem=32G
-#SBATCH --time=00:30:00
+#SBATCH --time=06:00:00
 #SBATCH -J "frontal_resnet"
 #SBATCH --output=train_%j.out
 #SBATCH --error=train_%j.err
