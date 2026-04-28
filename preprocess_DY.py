@@ -36,10 +36,11 @@ class ChestXrayDataset(Dataset):
     def __init__(self, csv_path, base_dir, view='frontal', transform=None):
         df = pd.read_csv(csv_path)
 
-        if view == 'frontal':
-            df = df[df['Frontal/Lateral'] == 'Frontal']
-        elif view == 'lateral':
-            df = df[df['Frontal/Lateral'] == 'Lateral']
+        if view in ('frontal', 'lateral'):
+            if 'Frontal/Lateral' in df.columns:
+                df = df[df['Frontal/Lateral'] == view.capitalize()]
+            else:
+                df = df[df['Path'].str.contains(view, case=False)]
 
         self.df        = df.reset_index(drop=True)
         self.base_dir  = base_dir
