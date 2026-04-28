@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms
 
 train_path = '/resnick/groups/CS156b/from_central/data'
-save_dir   = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
+SAVE_DIR   = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
 
 def pad_to_square(img):
     w, h = img.size
@@ -74,14 +74,14 @@ if __name__ == '__main__':
     csv_path = os.path.join(train_path, 'student_labels', 'train2023.csv')
     df = pd.read_csv(csv_path)
     df[df['Frontal/Lateral'] == 'Frontal'].to_csv(
-        os.path.join(save_dir, 'frontal_train.csv'), index=False)
+        os.path.join(SAVE_DIR, 'frontal_train.csv'), index=False)
     df[df['Frontal/Lateral'] == 'Lateral'].to_csv(
-        os.path.join(save_dir, 'lateral_train.csv'), index=False)
+        os.path.join(SAVE_DIR, 'lateral_train.csv'), index=False)
     print("Saved frontal_train.csv and lateral_train.csv")
 
     frontal_dataset = ChestXrayDataset(
-        os.path.join(save_dir, 'frontal_train.csv'), train_path, view='all', transform=TRANSFORM)
+        os.path.join(SAVE_DIR, 'frontal_train.csv'), train_path, view='all', transform=TRANSFORM)
     lateral_dataset = ChestXrayDataset(
-        os.path.join(save_dir, 'lateral_train.csv'), train_path, view='all', transform=TRANSFORM)
+        os.path.join(SAVE_DIR, 'lateral_train.csv'), train_path, view='all', transform=TRANSFORM)
     print(f"Frontal samples : {len(frontal_dataset)}")
     print(f"Lateral samples : {len(lateral_dataset)}")

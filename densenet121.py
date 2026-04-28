@@ -6,9 +6,9 @@ from torch.utils.data import DataLoader
 from torchvision import models
 from preprocess_DY import ChestXrayDataset, TRANSFORM
 
-TRAIN_CSV  = '/resnick/groups/CS156b/from_central/data/train/train.csv'
+TRAIN_CSV  = '/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv'
 BASE_DIR   = '/resnick/groups/CS156b/from_central/data'
-SAVE_DIR   = '/resnick/groups/CS156b/from_central/2026/JDP/dean'
+SAVE_DIR   = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 

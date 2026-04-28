@@ -5,19 +5,18 @@ import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
 from torchvision import models
-from preprocess_DY import ChestXrayDataset, TRANSFORM, LABELS, save_dir, train_path
+from preprocess_DY import ChestXrayDataset, TRANSFORM, LABELS
 
-train_path = '/resnick/groups/CS156b/from_central/data'
-save_dir   = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
-
-TEST_CSV   = os.path.join(train_path, 'student_labels', 'test2023.csv')
-OUT_CSV    = os.path.join(save_dir, 'predictions_DY.csv')
-
-FRONTAL_WEIGHTS = os.path.join(save_dir, 'densenet121_frontal.pth')
-LATERAL_WEIGHTS = os.path.join(save_dir, 'densenet121_lateral.pth')
+BASE_DIR        = '/resnick/groups/CS156b/from_central/data'
+SAVE_DIR        = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
+TEST_CSV        = '/resnick/groups/CS156b/from_central/data/student_labels/test_ids.csv'
+FRONTAL_WEIGHTS = os.path.join(SAVE_DIR, 'densenet121_frontal.pth')
+LATERAL_WEIGHTS = os.path.join(SAVE_DIR, 'densenet121_lateral.pth')
+OUT_CSV         = os.path.join(SAVE_DIR, 'submission_DY.csv')
 
 NUM_LABELS = 9
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print(f"Using device: {device}", flush=True)
 
 def load_model(weights_path):
     m = models.densenet121(weights=None)
@@ -42,8 +41,10 @@ def run_inference(model, dataset):
 frontal_model = load_model(FRONTAL_WEIGHTS)
 lateral_model = load_model(LATERAL_WEIGHTS)
 
-frontal_ds = ChestXrayDataset(TEST_CSV, train_path, view='frontal', transform=TRANSFORM)
-lateral_ds = ChestXrayDataset(TEST_CSV, train_path, view='lateral', transform=TRANSFORM)
+frontal_ds = ChestXrayDataset(TEST_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
+lateral_ds = ChestXrayDataset(TEST_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
+print(f"Frontal test samples: {len(frontal_ds)}", flush=True)
+print(f"Lateral test samples: {len(lateral_ds)}", flush=True)
 
 frontal_preds, frontal_paths = run_inference(frontal_model, frontal_ds)
 lateral_preds, lateral_paths = run_inference(lateral_model, lateral_ds)
@@ -54,10 +55,11 @@ frontal_df.insert(0, 'Path', frontal_paths)
 lateral_df = pd.DataFrame(lateral_preds, columns=LABELS)
 lateral_df.insert(0, 'Path', lateral_paths)
 
-out_df = pd.concat([frontal_df, lateral_df], ignore_index=True)
+preds_df = pd.concat([frontal_df, lateral_df], ignore_index=True)
 
 test_df = pd.read_csv(TEST_CSV)
-out_df = test_df[['Path']].merge(out_df, on='Path', how='left')
+out_df = test_df[['Id', 'Path']].merge(preds_df, on='Path', how='left')
+out_df = out_df.drop(columns=['Path'])
 
 out_df.to_csv(OUT_CSV, index=False)
-print(f"Saved predictions to {OUT_CSV}  ({len(out_df)} rows)")
+print(f"Saved {OUT_CSV} with {len(out_df)} rows", flush=True)
