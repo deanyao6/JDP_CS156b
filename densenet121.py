@@ -12,7 +12,7 @@ SAVE_DIR   = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-SUBSET = None  # set to int to use a subset for testing
+SUBSET = 500  # set to None for full dataset
 
 frontal_dataset = ChestXrayDataset(TRAIN_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
 lateral_dataset = ChestXrayDataset(TRAIN_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
