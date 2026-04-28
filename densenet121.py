@@ -18,7 +18,7 @@ print(f"Frontal samples: {len(frontal_dataset)}", flush=True)
 print(f"Lateral samples: {len(lateral_dataset)}", flush=True)
 
 NUM_LABELS = 9
-NUM_EPOCHS = 5
+NUM_EPOCHS = 3
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}", flush=True)
 
