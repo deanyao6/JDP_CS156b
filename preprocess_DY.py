@@ -52,8 +52,7 @@ class ChestXrayDataset(Dataset):
 
     def __getitem__(self, idx):
         row = self.df.iloc[idx]
-        rel_path = row['Path'].replace('CheXpert-v1.0/', '').replace('patient', 'pid')
-        img_path = os.path.join(self.base_dir, rel_path)
+        img_path = os.path.join(self.base_dir, row['Path'])
         img = Image.open(img_path).convert('RGB')
 
         if self.transform:
