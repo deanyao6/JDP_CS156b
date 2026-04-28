@@ -13,7 +13,7 @@
 
 # activate your conda env — run `conda env list` on HPC to find the right name
 source ~/.bashrc
-conda activate cs156b   # replace with your actual env name if different
+conda activate /groups/CS156b/from_central/2026/JDP/JDP-env
 
 cd /resnick/groups/CS156b/from_central/2026/JDP
 
