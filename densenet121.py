@@ -4,9 +4,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision import models
-from preprocess_DY import ChestXrayDataset, TRANSFORM
+from preprocess_DY import CheXpertDataset, TRANSFORM
 
-TRAIN_CSV  = '/resnick/groups/CS156b/from_central/2026/JDP/jenna/train_clean.csv'
+TRAIN_CSV  = '/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv'
 BASE_DIR   = '/resnick/groups/CS156b/from_central/data'
 SAVE_DIR   = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
 
@@ -14,8 +14,8 @@ os.makedirs(SAVE_DIR, exist_ok=True)
 
 SUBSET = 500  # set to None for full dataset
 
-frontal_dataset = ChestXrayDataset(TRAIN_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
-lateral_dataset = ChestXrayDataset(TRAIN_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
+frontal_dataset = CheXpertDataset(TRAIN_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
+lateral_dataset = CheXpertDataset(TRAIN_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
 if SUBSET:
     from torch.utils.data import Subset
     frontal_dataset = Subset(frontal_dataset, range(SUBSET))

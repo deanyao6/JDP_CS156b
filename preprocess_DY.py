@@ -32,9 +32,12 @@ LABELS = [
     'Pleural Other', 'Fracture', 'Support Devices',
 ]
 
-class ChestXrayDataset(Dataset):
+class CheXpertDataset(Dataset):
     def __init__(self, csv_path, base_dir, view='frontal', transform=None):
         df = pd.read_csv(csv_path)
+
+        # drop rows whose images don't exist on this cluster
+        df = df[df['Path'].str.startswith('train/') | df['Path'].str.startswith('test/')]
 
         if view in ('frontal', 'lateral'):
             if 'Frontal/Lateral' in df.columns:
@@ -80,9 +83,9 @@ if __name__ == '__main__':
         os.path.join(SAVE_DIR, 'lateral_train.csv'), index=False)
     print("Saved frontal_train.csv and lateral_train.csv")
 
-    frontal_dataset = ChestXrayDataset(
+    frontal_dataset = CheXpertDataset(
         os.path.join(SAVE_DIR, 'frontal_train.csv'), train_path, view='all', transform=TRANSFORM)
-    lateral_dataset = ChestXrayDataset(
+    lateral_dataset = CheXpertDataset(
         os.path.join(SAVE_DIR, 'lateral_train.csv'), train_path, view='all', transform=TRANSFORM)
     print(f"Frontal samples : {len(frontal_dataset)}")
     print(f"Lateral samples : {len(lateral_dataset)}")
