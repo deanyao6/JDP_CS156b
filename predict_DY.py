@@ -5,7 +5,7 @@ import numpy as np
 import pandas as pd
 from torch.utils.data import DataLoader
 from torchvision import models
-from preprocess_DY import ChestXrayDataset, TRANSFORM, LABELS
+from preprocess_DY import CheXpertDataset, TRANSFORM, LABELS
 
 BASE_DIR        = '/resnick/groups/CS156b/from_central/data'
 SAVE_DIR        = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
@@ -41,8 +41,8 @@ def run_inference(model, dataset):
 frontal_model = load_model(FRONTAL_WEIGHTS)
 lateral_model = load_model(LATERAL_WEIGHTS)
 
-frontal_ds = ChestXrayDataset(TEST_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
-lateral_ds = ChestXrayDataset(TEST_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
+frontal_ds = CheXpertDataset(TEST_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
+lateral_ds = CheXpertDataset(TEST_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
 print(f"Frontal test samples: {len(frontal_ds)}", flush=True)
 print(f"Lateral test samples: {len(lateral_ds)}", flush=True)
 
