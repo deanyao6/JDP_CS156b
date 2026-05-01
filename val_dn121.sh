@@ -14,7 +14,7 @@
 
 cd /resnick/groups/CS156b/from_central/2026/JDP/dean_folder
 
-source ~/.bashrc
-conda activate /resnick/groups/CS156b/from_central/2026/JDP/JDP-env
+git pull origin main
+source ~/miniconda3/bin/activate /groups/CS156b/from_central/2026/JDP/JDP-env
 
 python3 val_dn121.py
