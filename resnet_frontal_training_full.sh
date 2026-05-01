@@ -6,7 +6,11 @@
 #SBATCH --gres=gpu:h100:1
 #SBATCH --mem=32G
 #SBATCH --time=24:00:00
-#SBATCH -J "frontal_resnet"
+#SBATCH -J "frontal_resnet_full"
+#SBATCH --mail-user=jwang8@caltech.edu 
+#SBATCH --mail-type=BEGIN
+#SBATCH --mail-type=END
+#SBATCH --mail-type=FAIL
 #SBATCH --output=train_%j.out
 #SBATCH --error=train_%j.err
 
