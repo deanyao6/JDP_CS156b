@@ -6,20 +6,13 @@ from torch.utils.data import DataLoader
 from torchvision import models
 from preprocess_DY import CheXpertDataset, TRANSFORM
 
-TRAIN_CSV  = '/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv'
 BASE_DIR   = '/resnick/groups/CS156b/from_central/data'
 SAVE_DIR   = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
 
 os.makedirs(SAVE_DIR, exist_ok=True)
 
-SUBSET = 500  # set to None for full dataset
-
-frontal_dataset = CheXpertDataset(TRAIN_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
-lateral_dataset = CheXpertDataset(TRAIN_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
-if SUBSET:
-    from torch.utils.data import Subset
-    frontal_dataset = Subset(frontal_dataset, range(SUBSET))
-    lateral_dataset = Subset(lateral_dataset, range(SUBSET))
+frontal_dataset = CheXpertDataset(os.path.join(SAVE_DIR, 'frontal_train_DY.csv'), BASE_DIR, view='all', transform=TRANSFORM)
+lateral_dataset = CheXpertDataset(os.path.join(SAVE_DIR, 'lateral_train_DY.csv'), BASE_DIR, view='all', transform=TRANSFORM)
 print(f"Frontal samples: {len(frontal_dataset)}", flush=True)
 print(f"Lateral samples: {len(lateral_dataset)}", flush=True)
 

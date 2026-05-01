@@ -2,25 +2,20 @@ import os
 import torch
 import torch.nn as nn
 import numpy as np
-from torch.utils.data import DataLoader, Subset
+from torch.utils.data import DataLoader
 from torchvision import models
 from sklearn.metrics import roc_auc_score
 from preprocess_DY import CheXpertDataset, TRANSFORM, LABELS
 
-TRAIN_CSV = '/resnick/groups/CS156b/from_central/data/student_labels/train2023.csv'
 BASE_DIR  = '/resnick/groups/CS156b/from_central/data'
 SAVE_DIR  = '/resnick/groups/CS156b/from_central/2026/JDP/dean_folder'
 
 NUM_LABELS = 9
-VAL_SIZE   = 500
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}", flush=True)
 
-frontal_full = CheXpertDataset(TRAIN_CSV, BASE_DIR, view='frontal', transform=TRANSFORM)
-lateral_full = CheXpertDataset(TRAIN_CSV, BASE_DIR, view='lateral', transform=TRANSFORM)
-
-frontal_val = Subset(frontal_full, range(len(frontal_full) - VAL_SIZE, len(frontal_full)))
-lateral_val = Subset(lateral_full, range(len(lateral_full) - VAL_SIZE, len(lateral_full)))
+frontal_val = CheXpertDataset(os.path.join(SAVE_DIR, 'frontal_val_DY.csv'), BASE_DIR, view='all', transform=TRANSFORM)
+lateral_val = CheXpertDataset(os.path.join(SAVE_DIR, 'lateral_val_DY.csv'), BASE_DIR, view='all', transform=TRANSFORM)
 print(f"Frontal val samples: {len(frontal_val)}", flush=True)
 print(f"Lateral val samples: {len(lateral_val)}", flush=True)
 

@@ -36,9 +36,6 @@ class CheXpertDataset(Dataset):
     def __init__(self, csv_path, base_dir, view='frontal', transform=None):
         df = pd.read_csv(csv_path)
 
-        # drop rows whose images don't exist on this cluster
-        df = df[df['Path'].str.startswith('train/') | df['Path'].str.startswith('test/')]
-
         if view in ('frontal', 'lateral'):
             if 'Frontal/Lateral' in df.columns:
                 df = df[df['Frontal/Lateral'] == view.capitalize()]
