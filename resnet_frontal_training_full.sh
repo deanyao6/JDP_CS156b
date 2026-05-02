@@ -11,8 +11,8 @@
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
-#SBATCH --output=train_%j.out
-#SBATCH --error=train_%j.err
+#SBATCH --output=resnet_frontal_training_full_%j.out
+#SBATCH --error=resnet_frontal_training_full_%j.err
 
 cd /resnick/groups/CS156b/from_central/2026/JDP/jenna
 git pull origin main

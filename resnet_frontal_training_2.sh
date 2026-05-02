@@ -11,8 +11,8 @@
 #SBATCH --mail-type=BEGIN
 #SBATCH --mail-type=END
 #SBATCH --mail-type=FAIL
-#SBATCH --output=train_%j.out
-#SBATCH --error=train_%j.err
+#SBATCH --output=resnet_frontal_training_2_train_%j.out
+#SBATCH --error=resnet_frontal_training_2_train_%j.err
 
 cd /resnick/groups/CS156b/from_central/2026/JDP/jenna
 git pull origin main
@@ -25,4 +25,4 @@ python resnet_frontal_training_2.py \
     --batch_size 32 \
     --lr 1e-4 \
     --num_workers 0 \
-    --output_dir checkpoints
+    --output_dir checkpoints/resnet_frontal_training_2
