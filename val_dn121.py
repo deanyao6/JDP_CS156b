@@ -34,10 +34,13 @@ def evaluate(model, loader, name):
 
     aucs = []
     for i, label in enumerate(LABELS):
-        if len(np.unique(all_labels[:, i])) < 2:
+        valid = ~np.isnan(all_labels[:, i])
+        y_true = all_labels[valid, i]
+        y_pred = probs[valid, i]
+        if len(np.unique(y_true)) < 2:
             print(f"  {label}: skipped (only one class present)", flush=True)
             continue
-        auc = roc_auc_score(all_labels[:, i], probs[:, i])
+        auc = roc_auc_score(y_true, y_pred)
         aucs.append(auc)
         print(f"  {label}: AUC = {auc:.4f}", flush=True)
     print(f"{name} mean AUC: {np.mean(aucs):.4f}\n", flush=True)

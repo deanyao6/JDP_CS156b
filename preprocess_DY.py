@@ -26,6 +26,16 @@ TRANSFORM = transforms.Compose([
                          std=[0.229, 0.224, 0.225]),
 ])
 
+TRAIN_TRANSFORM = transforms.Compose([
+    transforms.Lambda(pad_to_square),
+    transforms.Resize((224, 224)),
+    transforms.RandomHorizontalFlip(),
+    transforms.RandomRotation(5),
+    transforms.ToTensor(),
+    transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                         std=[0.229, 0.224, 0.225]),
+])
+
 LABELS = [
     'No Finding', 'Enlarged Cardiomediastinum', 'Cardiomegaly',
     'Lung Opacity', 'Pneumonia', 'Pleural Effusion',
@@ -62,8 +72,7 @@ class CheXpertDataset(Dataset):
             labels = (
                 self.df[LABELS]
                 .iloc[idx]
-                .fillna(0)
-                .replace(-1, 0)
+                .replace(-1, float('nan'))
                 .values.astype('float32')
             )
             return img, labels
