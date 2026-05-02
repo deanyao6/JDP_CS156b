@@ -25,4 +25,4 @@ python resnet_frontal_training.py \
     --batch_size 32 \
     --lr 1e-4 \
     --num_workers 0 \
-    --output_dir checkpoints
+    --output_dir checkpoints/resnet_frontal_full
