@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --cpus-per-task=4
 #SBATCH --partition=gpu
-#SBATCH --gres=gpu:h100:1
+#SBATCH --gres=gpu:nvidia_h200:1
 #SBATCH --mem=16G
 #SBATCH --time=00:30:00
 #SBATCH -J "frontal_resnet_full"
