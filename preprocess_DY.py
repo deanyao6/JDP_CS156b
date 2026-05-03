@@ -72,7 +72,8 @@ class CheXpertDataset(Dataset):
             labels = (
                 self.df[LABELS]
                 .iloc[idx]
-                .replace(-1, float('nan'))
+                .replace(0, float('nan'))
+                .replace(-1, 0)
                 .values.astype('float32')
             )
             return img, labels
