@@ -5,7 +5,7 @@
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:nvidia_h200:1
 #SBATCH --mem=32G
-#SBATCH --time=24:00:00
+#SBATCH --time=36:00:00
 #SBATCH -J "resnet_lr1e3"
 #SBATCH --output=resnet_lr1e3_%j.out
 #SBATCH --error=resnet_lr1e3_%j.err
