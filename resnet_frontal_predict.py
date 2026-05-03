@@ -5,6 +5,12 @@ import torch.nn as nn
 from torch.utils.data import Dataset, DataLoader
 from torchvision import models, transforms
 from PIL import Image
+import argparse
+
+p = argparse.ArgumentParser()
+p.add_argument("--checkpoint", type=str, required=True)
+p.add_argument("--output", type=str, default="submission.csv")
+args = p.parse_args()
 
 LABEL_COLS = [
     "No Finding", "Enlarged Cardiomediastinum", "Cardiomegaly",
@@ -43,7 +49,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 # load best model
 model = models.resnet50()
 model.fc = nn.Linear(model.fc.in_features, len(LABEL_COLS))
-checkpoint = torch.load("checkpoints/best_resnet50.pth", map_location=device, weights_only=False)
+checkpoint = torch.load(args.checkpoint, map_location=device, weights_only=False)
 model.load_state_dict(checkpoint["model_state_dict"])
 model = model.to(device)
 model.eval()
@@ -64,5 +70,5 @@ all_preds = np.concatenate(all_preds)
 test_df = pd.read_csv(TEST_CSV)
 submission = pd.DataFrame(all_preds, columns=LABEL_COLS)
 submission.insert(0, "Id", test_df["Id"])
-submission.to_csv("submission.csv", index=False)
-print(f"Saved submission.csv with {len(submission)} rows")
+submission.to_csv(args.output, index=False)
+print(f"Saved {args.output} with {len(submission)} rows")
