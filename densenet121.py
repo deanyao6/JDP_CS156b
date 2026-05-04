@@ -22,7 +22,7 @@ print(f"Frontal — train: {len(frontal_train)} | val: {len(frontal_val)}", flus
 print(f"Lateral — train: {len(lateral_train)} | val: {len(lateral_val)}", flush=True)
 
 NUM_LABELS = 9
-NUM_EPOCHS = 8
+NUM_EPOCHS = 5
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print(f"Using device: {device}", flush=True)
 
@@ -35,6 +35,7 @@ def train(model, train_loader, val_loader, num_epochs, save_path, title):
     criterion = nn.BCEWithLogitsLoss()
     optimizer = optim.Adam(model.parameters(), lr=1e-4)
     train_losses, val_losses = [], []
+    best_val_loss = float('inf')
 
     for epoch in range(num_epochs):
         model.train()
@@ -64,8 +65,10 @@ def train(model, train_loader, val_loader, num_epochs, save_path, title):
 
         print(f"Epoch {epoch+1}/{num_epochs} | Train: {train_loss:.4f} | Val: {val_loss:.4f}", flush=True)
 
-    torch.save(model.state_dict(), save_path)
-    print(f"Saved {save_path}", flush=True)
+        if val_loss < best_val_loss:
+            best_val_loss = val_loss
+            torch.save(model.state_dict(), save_path)
+            print(f"  -> Best model saved (val loss: {best_val_loss:.4f})", flush=True)
 
     plt.figure()
     plt.plot(range(1, num_epochs + 1), train_losses, label='Train')
