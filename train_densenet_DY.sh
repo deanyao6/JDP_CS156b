@@ -1,11 +1,11 @@
 #!/bin/bash
 #SBATCH --nodes=1
 #SBATCH --ntasks=1
-#SBATCH --cpus-per-task=4
+#SBATCH --cpus-per-task=8
 #SBATCH --partition=gpu
 #SBATCH --gres=gpu:h100:1
-#SBATCH --mem=32G
-#SBATCH --time=24:00:00
+#SBATCH --mem=64G
+#SBATCH --time=48:00:00
 #SBATCH --account=cs156b
 #SBATCH -J "densenet_DY"
 #SBATCH --output=densenet_DY_%j.out
