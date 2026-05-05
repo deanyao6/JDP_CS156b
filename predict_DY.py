@@ -21,7 +21,7 @@ print(f"Using device: {device}", flush=True)
 def load_model(weights_path):
     m = models.densenet121(weights=None)
     m.classifier = nn.Linear(m.classifier.in_features, NUM_LABELS)
-    m.load_state_dict(torch.load(weights_path, map_location=device))
+    m.load_state_dict(torch.load(weights_path, map_location=device, weights_only=True))
     m.to(device)
     m.eval()
     return m
@@ -33,7 +33,7 @@ def run_inference(model, dataset):
     with torch.no_grad():
         for imgs, paths in loader:
             logits = model(imgs.to(device))
-            preds  = torch.sigmoid(logits).cpu().numpy()
+            preds  = (torch.sigmoid(logits).cpu().numpy() * 2) - 1
             all_preds.append(preds)
             all_paths.extend(paths)
     return np.vstack(all_preds), all_paths
