@@ -194,7 +194,7 @@ def validate(model, loader):
 
     avg_total_loss = total_loss / total_batches
 
-    pathology_avg_losses = pathology_loss_sums / pathology_counts
+    pathology_avg_losses = pathology_loss_sums / torch.clamp(pathology_counts, min=1)
     pathology_avg_losses = pathology_avg_losses.detach().cpu().numpy()
 
     return avg_total_loss, pathology_avg_losses
@@ -202,7 +202,7 @@ def validate(model, loader):
 
 
 
-num_epochs = 10
+num_epochs = 3
 
 for epoch in range(num_epochs):
     train_loss = train_one_epoch(model, train_loader)
