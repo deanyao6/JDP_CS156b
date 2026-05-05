@@ -73,6 +73,8 @@ val_transform = transforms.Compose([
 
 full_df = pd.read_csv(CSV_PATH)
 
+full_df = full_df.dropna(subset=LABEL_COLS, how="all")
+
 # Optional: shuffle full dataset first
 full_df = full_df.sample(frac=1, random_state=42).reset_index(drop=True)
 
@@ -126,10 +128,16 @@ optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 
 
 def masked_loss(outputs, labels):
-    loss_matrix = criterion(outputs, labels)
-
-    # mask out NaN labels
     mask = ~torch.isnan(labels)
+
+    # If batch has no valid labels, skip it
+    if mask.sum() == 0:
+        print("masking is empty")
+        return None
+
+    safe_labels = torch.where(mask, labels, torch.zeros_like(labels))
+
+    loss_matrix = criterion(outputs, safe_labels)
 
     loss = loss_matrix[mask].mean()
     return loss
@@ -138,6 +146,7 @@ def masked_loss(outputs, labels):
 def train_one_epoch(model, loader):
     model.train()
     total_loss = 0
+    num_batches = 0
 
     for images, labels in loader:
         images = images.to(device)
@@ -148,19 +157,23 @@ def train_one_epoch(model, loader):
         outputs = model(images)
         loss = masked_loss(outputs, labels)
 
+        if loss is None:
+            continue
+
         loss.backward()
         optimizer.step()
 
         total_loss += loss.item()
+        num_batches += 1
 
-    return total_loss / len(loader)
+    return total_loss / num_batches
 
 
 def validate(model, loader):
     model.eval()
 
     total_loss = 0
-    total_batches = 0
+    num_batches = 0
 
     pathology_loss_sums = torch.zeros(len(LABEL_COLS), device=device)
     pathology_counts = torch.zeros(len(LABEL_COLS), device=device)
@@ -172,12 +185,12 @@ def validate(model, loader):
 
             outputs = model(images)
 
-            # Total masked loss
             loss = masked_loss(outputs, labels)
-            total_loss += loss.item()
-            total_batches += 1
 
-            # Per-pathology loss
+            if loss is not None:
+                total_loss += loss.item()
+                num_batches += 1
+
             mask = ~torch.isnan(labels)
             safe_labels = torch.where(mask, labels, torch.zeros_like(labels))
 
@@ -192,7 +205,7 @@ def validate(model, loader):
             pathology_loss_sums += valid_loss_matrix.sum(dim=0)
             pathology_counts += mask.sum(dim=0)
 
-    avg_total_loss = total_loss / total_batches
+    avg_total_loss = total_loss / num_batches
 
     pathology_avg_losses = pathology_loss_sums / torch.clamp(pathology_counts, min=1)
     pathology_avg_losses = pathology_avg_losses.detach().cpu().numpy()
