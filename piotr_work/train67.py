@@ -79,8 +79,9 @@ full_df = full_df.dropna(subset=LABEL_COLS, how="all")
 full_df = full_df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 # Take small subset
-train_df = full_df.iloc[:130_000].copy()
-val_df = full_df.iloc[130_000:].copy()
+train_size = int(0.8 * len(full_df))
+train_df = full_df.iloc[:train_size].copy()
+val_df = full_df.iloc[train_size:].copy()
 
 train_dataset = CheXpertDataset(
     dataframe=train_df,
