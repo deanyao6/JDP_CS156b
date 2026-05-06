@@ -79,8 +79,8 @@ full_df = full_df.dropna(subset=LABEL_COLS, how="all")
 full_df = full_df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 # Take small subset
-train_df = full_df.iloc[:2_000].copy()
-val_df = full_df.iloc[2_000:10_000].copy()
+train_df = full_df.iloc[:130_000].copy()
+val_df = full_df.iloc[130_000:].copy()
 
 train_dataset = CheXpertDataset(
     dataframe=train_df,
@@ -104,6 +104,7 @@ train_loader = DataLoader(
     batch_size=32,
     shuffle=True,
     num_workers=4,
+    pin_memory=True
 )
 
 val_loader = DataLoader(
@@ -111,6 +112,7 @@ val_loader = DataLoader(
     batch_size=32,
     shuffle=False,
     num_workers=4,
+    pin_memory=True
 )
 
 
@@ -166,7 +168,7 @@ def train_one_epoch(model, loader):
         total_loss += loss.item()
         num_batches += 1
 
-    return total_loss / num_batches
+    return total_loss / max(num_batches, 1)
 
 
 def validate(model, loader):
@@ -215,7 +217,12 @@ def validate(model, loader):
 
 
 
-num_epochs = 3
+num_epochs = 15
+
+best_val_loss = 100
+best_epoch = -1
+patience = 5
+epochs_without_improvement = 0
 
 for epoch in range(num_epochs):
     train_loss = train_one_epoch(model, train_loader)
@@ -229,5 +236,21 @@ for epoch in range(num_epochs):
     for name, loss_val in zip(LABEL_COLS, val_pathology_losses):
         print(f"  {name}: {loss_val:.4f}")
 
+    # Save model only if validation loss improves
+    if val_loss < best_val_loss:
+        best_val_loss = val_loss
+        best_epoch = epoch + 1
+        epochs_without_improvement = 0
 
-torch.save(model.state_dict(), "first_run.pth")
+        torch.save(model.state_dict(), "best_model.pth")
+
+        print(f"New best model saved at epoch {best_epoch} with val loss {best_val_loss:.4f}")
+
+    else:
+        epochs_without_improvement += 1
+        print(f"No improvement for {epochs_without_improvement} epoch(s).")
+
+    # Early stopping
+    if epochs_without_improvement >= patience:
+        print(f"Early stopping triggered. Best epoch was {best_epoch} with val loss {best_val_loss:.4f}")
+        break
