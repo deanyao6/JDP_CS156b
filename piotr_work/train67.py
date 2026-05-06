@@ -79,6 +79,7 @@ full_df = full_df.dropna(subset=LABEL_COLS, how="all")
 full_df = full_df.sample(frac=1, random_state=42).reset_index(drop=True)
 
 # Take small subset
+print("updated version")
 train_size = int(0.8 * len(full_df))
 train_df = full_df.iloc[:train_size].copy()
 val_df = full_df.iloc[train_size:].copy()
